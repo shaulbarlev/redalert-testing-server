@@ -86,6 +86,25 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
 
         return jsonify({"old_state": old_state, "new_state": new_state})
 
+    @app.route("/set_area", methods=["POST"])
+    def set_area():
+        log_request(request.path)
+
+        body = request.get_json(silent=True) or {}
+        raw_area = body.get("area", "")
+        if not isinstance(raw_area, str):
+            return jsonify({"error": "area must be a string"}), 400
+
+        new_area = raw_area.strip()
+        if not new_area:
+            return jsonify({"error": "area is required"}), 400
+
+        old_area = app.config.get("AREA_NAME")
+        app.config["AREA_NAME"] = new_area
+        logger.info("Area change: %s -> %s", old_area, new_area)
+
+        return jsonify({"old_area": old_area, "new_area": new_area})
+
     CONTROL_HTML = """
 <!doctype html>
 <html lang="en">
@@ -125,6 +144,14 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
       <div class="endpoint" style="margin-top: 0.4rem;">GET /WarningMessages/alert/alerts.json?areaName={{ area_name|e }}</div>
     </div>
 
+    <div style="margin-top: 1.5rem;">
+      <div>Current default area (used when no <code>areaName</code> query param is given):</div>
+      <div style="margin-top: 0.5rem;">
+        <input id="area-input" type="text" value="{{ area_name|e }}" style="min-width: 260px; padding: 0.35rem 0.5rem; border-radius: 4px; border: 1px solid #4a5568; background: #1a202c; color: #e2e8f0;" />
+        <button class="end" style="margin-left: 0.5rem;" onclick="setArea()">Set area</button>
+      </div>
+    </div>
+
     <div class="log" id="log"></div>
 
     <script>
@@ -143,6 +170,34 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
           } else {
             document.getElementById('current-state').textContent = data.new_state;
             logEl.textContent = 'State changed: ' + data.old_state + ' → ' + data.new_state;
+          }
+        } catch (err) {
+          logEl.textContent = 'Request failed: ' + err;
+        }
+      }
+
+      async function setArea() {
+        const logEl = document.getElementById('log');
+        const input = document.getElementById('area-input');
+        logEl.textContent = '';
+        const area = input.value.trim();
+
+        if (!area) {
+          logEl.textContent = 'Error: area is required';
+          return;
+        }
+
+        try {
+          const res = await fetch('/set_area', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ area })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            logEl.textContent = 'Error: ' + JSON.stringify(data);
+          } else {
+            logEl.textContent = 'Area changed: ' + data.old_area + ' → ' + data.new_area;
           }
         } catch (err) {
           logEl.textContent = 'Request failed: ' + err;
