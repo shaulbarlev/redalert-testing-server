@@ -18,7 +18,7 @@ python server.py --port 2500 --area-name "תל אביב - מזרח"
   Returns JSON matching the real Pikud Haoref shape (Category 10 + title logic, as in redalert.cpp stateFromAlert):
   - **ok** → `[]`
   - **alert** → single object with `cat: "1"`, `title`, `data`, `desc`
-  - **pre_alert** → single object with `cat: "10"`, `title: "בדקות הקרובות צפיות להתקבל התרעות באזורך"`
+  - **pre_alert** → single object with `cat: "10"`, `title: "בדקות הקרובות צפויות להתקבל התרעות באזורך"`
   - **end** → single object with `cat: "10"`, `title: "האירוע הסתיים"` (or any other cat-10 title → end)
 
   Optional query: `?areaName=...` to override the default area for that request.

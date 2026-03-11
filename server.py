@@ -10,7 +10,7 @@ State = Literal["ok", "alert", "pre_alert", "end"]
 
 # Category 10 title strings (redalert.cpp stateFromAlert)
 TITLE_END = "האירוע הסתיים"
-TITLE_PRE_ALERT = "בדקות הקרובות צפיות להתקבל התרעות באזורך"
+TITLE_PRE_ALERT = "בדקות הקרובות צפויות להתקבל התרעות באזורך"
 TITLE_ALERT = "ירי רקטות וטילים"
 
 
@@ -229,7 +229,7 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
             const cat = String(alertObj.cat);
             if (cat === '10') {
               const title = (alertObj.title != null ? String(alertObj.title) : '').trim();
-              if (title === 'בדקות הקרובות צפיות להתקבל התרעות באזורך') state = 'pre_alert';
+              if (title === 'בדקות הקרובות צפויות להתקבל התרעות באזורך') state = 'pre_alert';
               else state = 'end';
             } else {
               state = 'alert';
