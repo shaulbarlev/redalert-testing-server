@@ -266,6 +266,14 @@ def main():
         help="Port to listen on (default: 5000)",
     )
     parser.add_argument(
+        "--cert",
+        help="Path to SSL certificate file (PEM) for HTTPS",
+    )
+    parser.add_argument(
+        "--key",
+        help="Path to SSL private key file (PEM) for HTTPS",
+    )
+    parser.add_argument(
         "--area-name",
         default="תל אביב - מזרח",
         help="Default area name to embed in alerts (default: תל אביב - מזרח)",
@@ -279,7 +287,11 @@ def main():
 
     args = parser.parse_args()
     app = create_app(initial_state=args.initial_state, area_name=args.area_name)
-    app.run(host=args.host, port=args.port)
+    ssl_context = None
+    if args.cert and args.key:
+        ssl_context = (args.cert, args.key)
+
+    app.run(host=args.host, port=args.port, ssl_context=ssl_context)
 
 
 if __name__ == "__main__":
