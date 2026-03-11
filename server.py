@@ -8,6 +8,11 @@ from flask_cors import CORS
 
 State = Literal["ok", "alert", "pre_alert", "end"]
 
+# Category 10 title strings (redalert.cpp stateFromAlert)
+TITLE_END = "האירוע הסתיים"
+TITLE_PRE_ALERT = "בדקות הקרובות צפיות להתקבל התרעות באזורך"
+TITLE_ALERT = "ירי רקטות וטילים"
+
 
 def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מזרח") -> Flask:
     app = Flask(__name__)
@@ -39,21 +44,21 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
             # Match real API behaviour when there are no alerts
             return jsonify([])
 
-        # Map state to Pikud Haoref-style "cat" codes:
-        # - "14" → pre_alert
-        # - "13" → end
-        # - anything else (here: "1") → alert
+        # Category 10 + title (redalert.cpp stateFromAlert): cat 10 + title → END/PRE_ALERT; other cat → ALERT
         if state == "pre_alert":
-            cat = "14"
+            cat = "10"
+            title = TITLE_PRE_ALERT
         elif state == "end":
-            cat = "13"
+            cat = "10"
+            title = TITLE_END
         else:
             cat = "1"
+            title = TITLE_ALERT
 
         alert_obj = {
             "id": datetime.utcnow().strftime("%Y%m%d%H%M%S000000"),  # unique-ish
             "cat": cat,
-            "title": "ירי רקטות וטילים",
+            "title": title,
             "data": [area],
             "desc": "היכנסו מייד למרחב המוגן ",
         }
@@ -222,9 +227,13 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
 
           if (alertObj && alertObj.cat !== undefined) {
             const cat = String(alertObj.cat);
-            if (cat === '14') state = 'pre_alert';
-            else if (cat === '13') state = 'end';
-            else state = 'alert';
+            if (cat === '10') {
+              const title = (alertObj.title != null ? String(alertObj.title) : '').trim();
+              if (title === 'בדקות הקרובות צפיות להתקבל התרעות באזורך') state = 'pre_alert';
+              else state = 'end';
+            } else {
+              state = 'alert';
+            }
           }
 
           document.getElementById('current-state').textContent = state;
