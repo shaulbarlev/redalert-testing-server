@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 from datetime import datetime
 from typing import Literal
@@ -14,7 +15,11 @@ TITLE_PRE_ALERT = "בדקות הקרובות צפויות להתקבל התרע�
 TITLE_ALERT = "ירי רקטות וטילים"
 
 
-def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מזרח") -> Flask:
+def create_app(
+    initial_state: State = "ok",
+    area_name: str = "תל אביב - מזרח",
+    big_city_list_path: str | None = None,
+) -> Flask:
     app = Flask(__name__)
     CORS(app)  # Allow all origins for easy testing
 
@@ -28,6 +33,35 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
     logger = logging.getLogger("redalert-testing-server")
+
+    # Optional big city list (from a capture JSON file)
+    big_city_list: list[str] = []
+    if big_city_list_path:
+        try:
+            with open(big_city_list_path, "r", encoding="utf-8") as f:
+                captured = json.load(f)
+            payload = captured.get("payload", {})
+            data = payload.get("data", [])
+            if isinstance(data, list):
+                big_city_list = [str(x) for x in data if isinstance(x, str)]
+                logger.info(
+                    "Loaded big city list from %s (%d entries)",
+                    big_city_list_path,
+                    len(big_city_list),
+                )
+            else:
+                logger.warning(
+                    "Big city list file %s payload.data is not a list",
+                    big_city_list_path,
+                )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Failed to load big city list from %s: %s",
+                big_city_list_path,
+                exc,
+            )
+    app.config["BIG_CITY_LIST"] = big_city_list
+    app.config["USE_BIG_CITY_LIST"] = False
 
     def log_request(path: str) -> None:
         state = app.config.get("CURRENT_STATE", "ok")
@@ -55,11 +89,21 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
             cat = "1"
             title = TITLE_ALERT
 
+        big_city_list: list[str] = app.config.get("BIG_CITY_LIST", [])
+        use_big_city_list = bool(app.config.get("USE_BIG_CITY_LIST")) and bool(
+            big_city_list
+        )
+
+        if use_big_city_list:
+            data = big_city_list
+        else:
+            data = [area]
+
         alert_obj = {
             "id": datetime.utcnow().strftime("%Y%m%d%H%M%S000000"),  # unique-ish
             "cat": cat,
             "title": title,
-            "data": [area],
+            "data": data,
             "desc": "היכנסו מייד למרחב המוגן ",
         }
 
@@ -110,6 +154,48 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
 
         return jsonify({"old_area": old_area, "new_area": new_area})
 
+    @app.route("/set_big_city_list", methods=["POST"])
+    def set_big_city_list():
+        log_request(request.path)
+
+        body = request.get_json(silent=True) or {}
+        enabled = body.get("enabled")
+
+        if not isinstance(enabled, bool):
+            return jsonify({"error": "enabled must be a boolean"}), 400
+
+        old_enabled = bool(app.config.get("USE_BIG_CITY_LIST"))
+        app.config["USE_BIG_CITY_LIST"] = enabled
+        big_city_list: list[str] = app.config.get("BIG_CITY_LIST", [])
+        logger.info(
+            "Big city list toggle: %s -> %s (size=%d)",
+            old_enabled,
+            enabled,
+            len(big_city_list),
+        )
+
+        return jsonify(
+            {
+                "old_enabled": old_enabled,
+                "enabled": enabled,
+                "size": len(big_city_list),
+            }
+        )
+
+    @app.route("/big_city_list_state", methods=["GET"])
+    def big_city_list_state():
+        log_request(request.path)
+
+        big_city_list: list[str] = app.config.get("BIG_CITY_LIST", [])
+        enabled = bool(app.config.get("USE_BIG_CITY_LIST"))
+
+        return jsonify(
+            {
+                "enabled": enabled,
+                "size": len(big_city_list),
+            }
+        )
+
     CONTROL_HTML = """
 <!doctype html>
 <html lang="en">
@@ -158,6 +244,16 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
     </div>
 
     <div class="log" id="log"></div>
+
+    <div style="margin-top: 1.5rem;">
+      <div>Big city list (from capture): <strong id="big-city-status">loading…</strong></div>
+      <div style="margin-top: 0.5rem;">
+        <label>
+          <input id="big-city-toggle" type="checkbox" onchange="onBigCityToggle(this)" />
+          Use big city list for alerts
+        </label>
+      </div>
+    </div>
 
     <script>
       async function setState(state) {
@@ -209,6 +305,36 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
         }
       }
 
+      async function setBigCityList(enabled) {
+        const logEl = document.getElementById('log');
+        logEl.textContent = '';
+        try {
+          const res = await fetch('/set_big_city_list', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            logEl.textContent = 'Error: ' + JSON.stringify(data);
+          } else {
+            const statusEl = document.getElementById('big-city-status');
+            if (data.size > 0) {
+              statusEl.textContent = (data.enabled ? 'enabled' : 'disabled') + ' (' + data.size + ' cities)';
+            } else {
+              statusEl.textContent = 'no list loaded';
+            }
+            logEl.textContent = 'Big city list ' + (data.enabled ? 'enabled' : 'disabled');
+          }
+        } catch (err) {
+          logEl.textContent = 'Request failed: ' + err;
+        }
+      }
+
+      function onBigCityToggle(checkbox) {
+        setBigCityList(checkbox.checked);
+      }
+
       // Initialize current state by hitting alerts endpoint once
       async function initState() {
         try {
@@ -241,8 +367,27 @@ def create_app(initial_state: State = "ok", area_name: str = "תל אביב - מ
           document.getElementById('current-state').textContent = 'unknown';
         }
       }
+      async function initBigCityList() {
+        const statusEl = document.getElementById('big-city-status');
+        const checkbox = document.getElementById('big-city-toggle');
+        if (!statusEl || !checkbox) return;
+
+        try {
+          const res = await fetch('/big_city_list_state');
+          const data = res.ok ? (await res.json()) : { enabled: false, size: 0 };
+          checkbox.checked = !!data.enabled;
+          if (data.size > 0) {
+            statusEl.textContent = (data.enabled ? 'enabled' : 'disabled') + ' (' + data.size + ' cities)';
+          } else {
+            statusEl.textContent = 'no list loaded';
+          }
+        } catch {
+          statusEl.textContent = 'unknown';
+        }
+      }
 
       initState();
+      initBigCityList();
     </script>
   </body>
   </html>
@@ -288,6 +433,13 @@ def main():
         help="Default area name to embed in alerts (default: תל אביב - מזרח)",
     )
     parser.add_argument(
+        "--big-city-list-file",
+        help=(
+            "Path to capture JSON file whose payload.data will be used "
+            "as a big city list"
+        ),
+    )
+    parser.add_argument(
         "--initial-state",
         choices=["ok", "alert", "pre_alert", "end"],
         default="ok",
@@ -295,7 +447,11 @@ def main():
     )
 
     args = parser.parse_args()
-    app = create_app(initial_state=args.initial_state, area_name=args.area_name)
+    app = create_app(
+        initial_state=args.initial_state,
+        area_name=args.area_name,
+        big_city_list_path=args.big_city_list_file,
+    )
     ssl_context = None
     if args.cert and args.key:
         ssl_context = (args.cert, args.key)

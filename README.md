@@ -51,6 +51,7 @@ python server.py --port 2500 --cert cert.pem --key key.pem
 - `--host` — bind address (default: `0.0.0.0`)
 - `--port` — port (default: `2500`)
 - `--area-name` — default area name in alerts
+- `--big-city-list-file` — path to a capture JSON file; its `payload.data` list will be used as a “big city list” when enabled from the control UI
 - `--initial-state` — `ok` | `alert` | `pre_alert` | `end` (default: `ok`)
 - `--cert` / `--key` — paths to PEM files for HTTPS
 
