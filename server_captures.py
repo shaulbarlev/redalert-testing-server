@@ -34,10 +34,15 @@ def get_alert_type(payload: dict[str, Any]) -> str:
     return "Alert"
 
 
-def get_capture_list(captures_dir: Path) -> list[dict[str, Any]]:
+def get_capture_list(
+    captures_dir: Path,
+    city_filter: list[str] | None = None,
+) -> list[dict[str, Any]]:
     """
     Scan captures_dir for *-alerts.json files. Return list of
     {filename, time, size, num_cities, type}, sorted by time descending.
+    If city_filter is set, only include captures whose payload.data contains
+    at least one city that has any of the filter strings as a substring.
     """
     if not captures_dir.is_dir():
         return []
@@ -52,9 +57,20 @@ def get_capture_list(captures_dir: Path) -> list[dict[str, Any]]:
             if not isinstance(payload, dict):
                 logging.warning("Skipping %s: payload is not a dict", path.name)
                 continue
-            time_str = meta.get("timestamp") or path.stem.replace("-alerts", "")
             data_list = payload.get("data")
-            num_cities = len(data_list) if isinstance(data_list, list) else 0
+            if not isinstance(data_list, list):
+                data_list = []
+            if city_filter:
+                city_strings = [str(c) for c in data_list]
+                terms = [q.strip() for q in city_filter if q.strip()]
+                if terms and not any(
+                    term in city
+                    for city in city_strings
+                    for term in terms
+                ):
+                    continue
+            time_str = meta.get("timestamp") or path.stem.replace("-alerts", "")
+            num_cities = len(data_list)
             alert_type = get_alert_type(payload)
             entries.append({
                 "filename": path.name,
@@ -109,7 +125,9 @@ def create_app(captures_dir: str | Path) -> Flask:
     @app.route("/captures", methods=["GET"])
     def list_captures() -> Any:
         log_request(request.path)
-        entries = get_capture_list(captures_path)
+        city_param = request.args.get("city", "").strip()
+        city_filter = [s.strip() for s in city_param.split(",") if s.strip()]
+        entries = get_capture_list(captures_path, city_filter=city_filter or None)
         selected = app.config.get("SELECTED_FILENAME")
         return jsonify({"captures": entries, "selected": selected})
 
@@ -159,6 +177,11 @@ def create_app(captures_dir: str | Path) -> Flask:
     <h1>Fake Pikud Haoref – Capture mode</h1>
     <div class="serving">Serving: <span id="serving-label">None</span></div>
     <p>Select a capture to serve, or "None" to return empty array.</p>
+    <div style="margin-bottom: 1rem;">
+      <label for="city-search">Filter by city (substring):</label>
+      <input id="city-search" type="text" placeholder="e.g. תל אביב or ירושלים" style="margin-left: 0.5rem; min-width: 200px; padding: 0.35rem 0.5rem; border-radius: 4px; border: 1px solid #4a5568; background: #1a202c; color: #e2e8f0;" />
+      <span id="search-hint" style="margin-left: 0.5rem; color: #718096; font-size: 0.9rem;"></span>
+    </div>
     <table id="captures-table">
       <thead>
         <tr>
@@ -189,9 +212,19 @@ def create_app(captures_dir: str | Path) -> Flask:
         servingEl.textContent = name == null ? 'None' : name;
       }
 
+      let searchDebounce = null;
+      function getCityParam() {
+        const raw = document.getElementById('city-search').value.trim();
+        return raw ? raw : '';
+      }
       async function loadCaptures() {
+        const city = getCityParam();
+        const url = city ? '/captures?city=' + encodeURIComponent(city) : '/captures';
+        const hintEl = document.getElementById('search-hint');
+        if (city) hintEl.textContent = 'Filtering by: \"' + city + '\"';
+        else hintEl.textContent = '';
         try {
-          const res = await fetch('/captures');
+          const res = await fetch(url);
           const data = await res.json();
           if (!res.ok) {
             logEl.textContent = 'Error: ' + JSON.stringify(data);
@@ -220,6 +253,10 @@ def create_app(captures_dir: str | Path) -> Flask:
           logEl.textContent = 'Request failed: ' + err;
         }
       }
+      function onCitySearchInput() {
+        if (searchDebounce) clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(loadCaptures, 300);
+      }
 
       async function selectCapture(filename) {
         logEl.textContent = '';
@@ -246,6 +283,13 @@ def create_app(captures_dir: str | Path) -> Flask:
         }
       }
 
+      document.getElementById('city-search').addEventListener('input', onCitySearchInput);
+      document.getElementById('city-search').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          if (searchDebounce) clearTimeout(searchDebounce);
+          loadCaptures();
+        }
+      });
       loadCaptures();
     </script>
   </body>

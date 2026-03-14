@@ -57,6 +57,58 @@ python server.py --port 2500 --cert cert.pem --key key.pem
 
 ---
 
+## Capture-based server
+
+Serves **only** from pre-captured JSON files (e.g. from the capture script). No synthetic state: you pick which capture to serve from a list. Useful for replaying real responses during testing.
+
+### Install and run
+
+```bash
+pip install -r requirements.txt
+python server_captures.py --captures-dir ./captures --port 2501
+```
+
+Open `http://localhost:2501/` for the control UI. Select a capture (or “None”) to control what `GET /WarningMessages/alert/alerts.json` returns.
+
+### Endpoints
+
+- **Alerts (for WLED)**  
+  `GET /WarningMessages/alert/alerts.json`  
+  Returns `[]` if no capture is selected; otherwise returns the **payload** of the selected capture (same shape as the real API: single object with `id`, `cat`, `title`, `data`, `desc`). Files are stored with a wrapper `{ "meta", "payload" }`; only `payload` is sent.
+
+- **List captures**  
+  `GET /captures`  
+  Returns `{ "captures": [...], "selected": "<filename>" | null }`.  
+  Optional query: `?city=...` to filter to captures whose `data` list contains at least one city with that substring. Comma-separated for multiple terms (e.g. `?city=תל אביב,ירושלים`).
+
+- **Select capture**  
+  `POST /select_capture`  
+  Body: `{ "filename": "<name>" | null }` — set which capture to serve, or `null` to serve `[]`.
+
+- **Control UI**  
+  `GET /` — HTML page with a table of captures (time, size, num cities, type), a “Filter by city” search box, and “None” to clear selection. Type in the search to filter by city substring (debounced); table shows only matching captures.
+
+### Type shown in the list
+
+- **Pre alert** — cat 10, title contains “בדקות הקרובות צפויות…”
+- **End (safe)** — cat 10, title contains “האירוע הסתיים”
+- **Alert** — any other category
+
+### HTTPS
+
+```bash
+python server_captures.py --port 2501 --cert cert.pem --key key.pem
+```
+
+### CLI options
+
+- `--host` — bind address (default: `0.0.0.0`)
+- `--port` — port (default: `2501`)
+- `--captures-dir` — directory of `*-alerts.json` files (default: `./captures`)
+- `--cert` / `--key` — paths to PEM files for HTTPS
+
+---
+
 ## API capture script
 
 Polls the **real** Pikud Haoref `alerts.json` URL and saves a timestamped file whenever the response changes (skips idle `[]`).
