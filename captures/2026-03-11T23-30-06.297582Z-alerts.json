@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T23-30-06.297582Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177453990000000",
+    "cat": "6",
+    "title": "חדירת כלי טיס עוין",
+    "data": [
+      "אבן מנחם",
+      "נטועה",
+      "פסוטה"
+    ],
+    "desc": "היכנסו מייד למרחב המוגן "
+  }
+}

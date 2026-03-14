@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "timestamp": "2026-03-12T02-06-54.270468Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177548070000000",
+    "cat": "1",
+    "title": "ירי רקטות וטילים",
+    "data": [
+      "באר אורה"
+    ],
+    "desc": "היכנסו למרחב המוגן"
+  }
+}

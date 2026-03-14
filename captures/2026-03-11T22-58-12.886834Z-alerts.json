@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T22-58-12.886834Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177434860000000",
+    "cat": "6",
+    "title": "חדירת כלי טיס עוין",
+    "data": [
+      "חוף בצת"
+    ],
+    "desc": "היכנסו מייד למרחב המוגן "
+  }
+}

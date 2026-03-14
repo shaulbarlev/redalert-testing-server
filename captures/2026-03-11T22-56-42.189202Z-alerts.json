@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T22-56-42.189202Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177433990000000",
+    "cat": "6",
+    "title": "חדירת כלי טיס עוין",
+    "data": [
+      "חוף בצת",
+      "ראש הנקרה"
+    ],
+    "desc": "היכנסו מייד למרחב המוגן "
+  }
+}

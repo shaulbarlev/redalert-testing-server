@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T22-57-03.425616Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177434200000000",
+    "cat": "1",
+    "title": "ירי רקטות וטילים",
+    "data": [
+      "בן עמי",
+      "גשר הזיו",
+      "נהריה",
+      "סער",
+      "לימן",
+      "חוף אכזיב"
+    ],
+    "desc": "היכנסו למרחב המוגן"
+  }
+}

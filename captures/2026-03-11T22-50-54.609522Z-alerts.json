@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T22-50-54.609522Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177430470000000",
+    "cat": "6",
+    "title": "חדירת כלי טיס עוין",
+    "data": [
+      "דפנה",
+      "ע'ג'ר",
+      "שאר ישוב",
+      "קיבוץ דן",
+      "אל רום",
+      "אודם",
+      "שניר"
+    ],
+    "desc": "היכנסו מייד למרחב המוגן "
+  }
+}

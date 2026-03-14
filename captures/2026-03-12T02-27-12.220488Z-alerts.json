@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "timestamp": "2026-03-12T02-27-12.220488Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177560270000000",
+    "cat": "10",
+    "title": "האירוע הסתיים",
+    "data": [
+      "אלמגור"
+    ],
+    "desc": "השוהים במרחב המוגן יכולים לצאת. בעת קבלת הנחיה או התרעה, יש לפעול בהתאם להנחיות פיקוד העורף."
+  }
+}

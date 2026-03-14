@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T22-27-59.177703Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177416710000000",
+    "cat": "6",
+    "title": "חדירת כלי טיס עוין",
+    "data": [
+      "סער"
+    ],
+    "desc": "היכנסו מייד למרחב המוגן "
+  }
+}

@@ -1,5 +1,4 @@
 cert.pem
 server.py
 key.pem
-captures/
 .DS_Store

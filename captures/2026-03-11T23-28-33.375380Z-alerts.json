@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T23-28-33.375380Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177453090000000",
+    "cat": "6",
+    "title": "חדירת כלי טיס עוין",
+    "data": [
+      "גורן",
+      "גורנות הגליל",
+      "ערב אל עראמשה"
+    ],
+    "desc": "היכנסו מייד למרחב המוגן "
+  }
+}

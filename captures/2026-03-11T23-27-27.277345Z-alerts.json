@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T23-27-27.277345Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177452430000000",
+    "cat": "6",
+    "title": "חדירת כלי טיס עוין",
+    "data": [
+      "ערב אל עראמשה",
+      "שומרה"
+    ],
+    "desc": "היכנסו מייד למרחב המוגן "
+  }
+}

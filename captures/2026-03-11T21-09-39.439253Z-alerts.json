@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T21-09-39.439253Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177369710000000",
+    "cat": "6",
+    "title": "חדירת כלי טיס עוין",
+    "data": [
+      "נהריה",
+      "סער",
+      "חוף אכזיב",
+      "גשר הזיו",
+      "לימן",
+      "כברי"
+    ],
+    "desc": "היכנסו מייד למרחב המוגן "
+  }
+}

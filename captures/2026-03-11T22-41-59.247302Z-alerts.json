@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "timestamp": "2026-03-11T22-41-59.247302Z",
+    "url": "https://www.oref.org.il/WarningMessages/alert/alerts.json",
+    "status": 200,
+    "areaName": null
+  },
+  "payload": {
+    "id": "134177425150000000",
+    "cat": "10",
+    "title": "האירוע הסתיים",
+    "data": [
+      "אשכולות"
+    ],
+    "desc": "השוהים במרחב המוגן יכולים לצאת. בעת קבלת הנחיה או התרעה, יש לפעול בהתאם להנחיות פיקוד העורף."
+  }
+}
